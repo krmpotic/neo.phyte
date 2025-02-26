@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo.phyte</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        color: #eee;
+        background: #000;
+      }
+      h1 {
+        color: #cfc;
+        text-align: center;
+      }
+      h2 {
+        color: #beb;
+        text-align: center;
+      }
+      h3 {
+        color: #ada;
+        text-align: center;
+      }
+      p {
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+<h1>neo.phyte 0x00</h1>
+<h2>Introduction</h2>
+<h3>Inspiration &amp; goal</h3>
+<p>These series of text files will follow my journey of learning assembly
+programming, but I will write so that it will serve as a guide to somebody
+just getting into computers, and also as a summary of concepts &amp; source of
+assembly examples for somebody experienced.</p>
+<p>We will start with creating the smallest possible program. While programming
+language tutorials usually start with writing &quot;Hello World!&quot; to the screen -
+tradition started by Brian Kernighan &amp; Denis Ritchie of K&amp;R fame -  we will
+not do so here, and start with something much simpler, a program that
+does nothing, and exits.</p>
+<p>This is a work of love, inspired by and dedicated to:</p>
+<ul>
+<li>T.M.J.K. - to whom I hope it will serve as an interesting overview</li>
+<li>E.P.J.   - who inspires me with his endless learning</li>
+</ul>
+<h3>Prerequisites</h3>
+<p>If you want to follow along you will need</p>
+<ul>
+<li>a UNIX operating system</li>
+<li><code>nasm</code> the Netwide Assembler</li>
+<li><code>ld</code> the GNU linker</li>
+<li><code>make</code></li>
+</ul>
+<h3>Exit status</h3>
+<p>In the UNIX family of operating systems (Linux, BSDs, Plan9), when a process
+terminates, it exits with a status - a number from 0-255.</p>
+<p>0 status indicates a success, anything else a failure.</p>
+<p>The parent process can find out what the exit status was using the wait system
+call. In the Bash shell, we can see the exit status of the last command
+in the <code>$?</code> variable.</p>
+<pre><code class="language-sh">touch /tmp/
+echo $?
+# 0
+</code></pre>
+<p>The 0 indicates that we have successfuly &quot;touched&quot; (updated the access and
+modification times of) the /tmp directory (test with <code>ls -ld /tmp</code>).</p>
+<p>Executing <code>false</code>, we get exit status 1.</p>
+<pre><code class="language-sh">false
+echo $?
+# 1
+</code></pre>
+<p>These exit statuses can be used to conditionally chain together commands.</p>
+<pre><code class="language-sh">true &amp;&amp; echo good || echo bad
+# good
+</code></pre>
+<pre><code class="language-sh">false &amp;&amp; echo good || echo bad
+# bad
+</code></pre>
+<p>(given this output, where are the invisible parentheses?)</p>
+<p>By the way, this exit status is the reason why the <code>main</code> function in C is
+<code>int main()</code> and not <code>void main()</code>.</p>
+<h2>First steps into assembly</h2>
+<h3>The smallest program</h3>
+<pre><code class="language-asm">section .text
+    global _start
+_start:
+    mov di, 1
+    mov ax, 60
+    syscall
+</code></pre>
+<p>Here is our first assembly program, which uses just two different instructions
+<code>mov</code> and <code>syscall</code>.</p>
+<h3>mov instruction</h3>
+<p>The CPU has registers, and a register is the smallest and fastest memory
+storage available - living inside the CPU itself. The <code>mov</code> instruction
+takes two operands: a destination, and a source. It copies (i.e. moves)
+what is in the second operand and puts it in the memory of the first operand.</p>
+<p><code>mov di, 1</code></p>
+<p>moves 1 into the <code>di</code> register</p>
+<p><code>mov ax, 60</code></p>
+<p>moves 60 into the <code>ax</code> register</p>
+<h3>syscall instruction</h3>
+<p>And last but not least, <code>syscall</code> invokes the kernel's syscall handler,
+providing <code>ax</code> and <code>di</code> as arguments!
+Kernel is the operating system, and the syscall handler is the interface where
+the kernel communicates with &quot;userspace&quot; processes.</p>
+<p>Imagine the handler something like this C pseudocode:</p>
+<pre><code class="language-c">void syscall_handler(int ax, int di) {
+    switch (ax) {
+    case 0: // read syscall
+    case 1: // write sycall
+    case 2: // open syscall
+    case 3: // close syscall
+    //...
+    case 60: // exit syscall
+        exit(di); // terminate process with `di` exit status
+    //...
+    }
+}
+</code></pre>
+<p>And our program invokes it with two values in <code>ax</code> and <code>di</code>:
+<code>syscall_handler(60, 1)</code></p>
+<p>Which in turn will invoke <code>syscall60</code> aka <code>exit</code> with the value in di as
+its argument.</p>
+<p><code>exit(1)</code></p>
+<h3>Summary</h3>
+<p>Now, we understand better what the following program does,</p>
+<pre><code class="language-asm">    mov di, 1
+    mov ax, 60
+    syscall
+</code></pre>
+<p>while new questions have arisen - e.g. how does the syscall handler really
+look like? where is it stored - probably not in main memory (RAM) - that
+would be too slow!</p>
+<h3>.text section</h3>
+<p>every program has .data, .bss, &amp; .text sections, where .data &amp; .bss store
+initialized and uninitialized data, and .text stores executable
+instructions, which <code>mov</code> and <code>syscall</code> are.</p>
+<pre><code class="language-asm">section .text
+    global _start
+_start:
+    mov di, 1
+    mov ax, 60
+    syscall
+</code></pre>
+<p>the <code>_start:</code> label is where program starts it's execution.</p>
+<h2>What have we done?</h2>
+<p>We have recreated the <code>false</code> program, which simply returns exit-status 1.
+If you have nasm, ld and make installed, you should be able to simply
+run make in this directory, and test it:</p>
+<pre><code class="language-sh">make
+./false
+echo $?
+# 1
+</code></pre>
+<p>Running <code>make</code> will invoke <code>nasm</code> to create the <code>false.o</code> object file,
+and then the <code>ld</code> linker to create the <code>false</code> executable.</p>
+<p>You can clean up these two files using
+<code>make clean</code></p>
+<h2>hexdump</h2>
+<p>To look at the ones and zeros of the created ./false executable, we can use
+the <code>hexdump</code> program.</p>
+<p><code>hexdump -C false</code> outputs</p>
+<pre><code>00000000  7f 45 4c 46 02 01 01 00  00 00 00 00 00 00 00 00  |.ELF............|
+00000010  02 00 3e 00 01 00 00 00  00 10 40 00 00 00 00 00  |..&gt;.......@.....|
+// ...redacted
+00001000  66 bf 01 00 66 b8 3c 00  0f 05 00 00 00 00 00 00  |f...f.&lt;.........|
+// ...redacted
+</code></pre>
+<p>At the beginnig, we have the ELF header. And at position 0x1000, we have the
+10 bytes that make up our program!</p>
+<p><code>66 bf 01 00 66 b8 3c 00 0f 05</code></p>
+<p>There is some pattern in these bytes, we can see two <code>0x66</code> bytes,
+and we have two <code>mov</code> instruction. If we align the bytes as so:</p>
+<pre><code>66 bf 01 00
+66 b8 3c 00
+0f 05
+</code></pre>
+<p>We can already imagine the:</p>
+<pre><code>mov di, 1
+mov ax, 60
+syscall
+</code></pre>
+<p><code>0x3c</code> is 60 in hexadecimal which was assigned to ax! Above it we have</p>
+<p><code>0x01</code> which was assigned to di.</p>
+<p>So 0xbf must refer to the di register, and 0xb8 to the ax register.</p>
+<p>That leaves us with 0x0f 0x05 sequence, which must correspond to the
+<code>syscall</code> instruction!</p>
+  </body>
+</html>
