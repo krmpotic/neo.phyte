@@ -2,3 +2,4 @@
 *.o
 
 0x00/false
+0x01/popcount
