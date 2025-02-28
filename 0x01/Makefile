@@ -1,10 +1,13 @@
-NAME=popcount
+targets = popcount coffee
 
-$(NAME): $(NAME).asm
-	nasm -f elf64 -o $(NAME).o $(NAME).asm
-	ld -o $(NAME) $(NAME).o
+all: $(targets)
+
+$(targets): %: %.asm
+	nasm -f elf64 -o $@.o $@.asm
+	ld -o $@ $@.o
 
 clean:
-	rm -f $(NAME).o $(NAME)
+	rm -f *.o
+	rm -f $(targets)
 
-.PHONY: clean
+.PHONY: all clean
