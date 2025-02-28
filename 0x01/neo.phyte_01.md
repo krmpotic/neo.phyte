@@ -162,6 +162,20 @@ instruction equivalent to C's i++, and what are its benefits?
 Using exit-status to output data proved useful - now we have to figure out a
 way to input data to our assembly programs, in order to make them interactive.
 
+### Notes from the reader
+
+An attentive reader informed me that a `popcnt` instruction already exists,
+which takes the popcount of the source operand and puts it in the destination.
+
+So the program can be shortened to:
+
+```asm
+_start:
+    popcnt rdi, 0xff00ff
+    mov rax, 60
+    syscall
+```
+
 # Appendix
 
 ## Learn your A, B, C, Ds

@@ -1,4 +1,4 @@
-targets = popcount coffee
+targets = coffee popcount popcount2
 
 all: $(targets)
 
