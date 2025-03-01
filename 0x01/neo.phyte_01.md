@@ -73,6 +73,18 @@ add rax, 1
 
 `rax` is now 4
 
+#### inc
+
+As was pointed out by a reader, when adding 1, we can use the optimized `inc`
+instruction instead.
+
+```
+mov rbx, 0xfe
+inc rbx
+```
+
+`rbx` is now 0xff = 255
+
 ### shr
 
 The shift right instruction, shifts the first operand X number of bits to the
@@ -145,7 +157,7 @@ repeat:
 	test rcx, 1 ;;; these five lines check the
 	jz unset    ;;; rightmost bit of rcx register
 set:            ;;; if it is set, they add 1 to
-	add rdi, 1  ;;; rdi register, otherwise they
+	inc rdi     ;;; rdi register, otherwise they
 unset:          ;;; do nothing
 	shr rcx, 1 ; now that the bit was checked, it is discarded
 	jmp repeat ;;; repeat

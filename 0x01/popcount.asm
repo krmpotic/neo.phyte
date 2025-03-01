@@ -14,7 +14,7 @@ popcount:
 	test rcx, 1
 	jz unset
 set:
-	add rdi, 1
+	inc rdi
 unset:
 	shr rcx, 1
 	jmp popcount
